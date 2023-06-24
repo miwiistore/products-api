@@ -6,12 +6,20 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/miwiistore/utils/apierror"
 )
 
 func GetCategories(c *gin.Context) {
 	categories, err := service.GetCategories()
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error getting categories.")
+		c.IndentedJSON(apiError.Status(), apiError)
+		return
+	}
+
+	if categories == nil {
+		apiError := apierror.NewNotFoundApiError("products", "Categories not found.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -21,29 +29,39 @@ func GetCategories(c *gin.Context) {
 func GetCategoryByID(c *gin.Context) {
 	categoryID, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.IndentedJSON(400, "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
-	categories, err := service.GetCategoryByID(int16(categoryID))
+	category, err := service.GetCategoryByID(int16(categoryID))
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error getting category.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
-	c.IndentedJSON(200, categories)
+	if category.CategoryID == 0 {
+		apiError := apierror.NewNotFoundApiError("products", "Category not found.")
+		c.IndentedJSON(apiError.Status(), apiError)
+		return
+	}
+
+	c.IndentedJSON(200, category)
 }
 
 func AddCategory(c *gin.Context) {
 	var newCategory domain.Category
 	if err := c.ShouldBindJSON(&newCategory); err != nil {
-		c.IndentedJSON(400, "Input body is invalid.")
+		apiError := apierror.NewBadRequestApiError("products", "Input body is invalid.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	newCategory, err := service.AddCategory(newCategory)
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error creating category.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -53,18 +71,21 @@ func AddCategory(c *gin.Context) {
 func UpdateCategory(c *gin.Context) {
 	var currentCategory domain.Category
 	if err := c.ShouldBindJSON(&currentCategory); err != nil {
-		c.IndentedJSON(400, "Input body is invalid.")
+		apiError := apierror.NewBadRequestApiError("products", "Input body is invalid.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	if currentCategory.CategoryID == 0 {
-		c.IndentedJSON(400, "Missing category_id. Field is required.")
+		apiError := apierror.NewBadRequestApiError("products", "Missing category_id. Field is required.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	currentCategory, err := service.UpdateCategory(currentCategory)
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error updating category.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -74,13 +95,15 @@ func UpdateCategory(c *gin.Context) {
 func DeleteCategory(c *gin.Context) {
 	categoryID, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.IndentedJSON(400, "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	err = service.DeleteCategory(int16(categoryID))
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error deleting category.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 

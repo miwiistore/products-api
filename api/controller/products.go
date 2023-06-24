@@ -6,18 +6,27 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/miwiistore/utils/apierror"
 )
 
 func GetProductByID(c *gin.Context) {
 	productID, err := strconv.Atoi(c.Param("productID"))
 	if err != nil {
-		c.IndentedJSON(400, "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	product, err := service.GetProductByID(int64(productID))
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error getting product.")
+		c.IndentedJSON(apiError.Status(), apiError)
+		return
+	}
+
+	if product.ProductID == 0 {
+		apiError := apierror.NewNotFoundApiError("products", "Product not found.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -27,13 +36,21 @@ func GetProductByID(c *gin.Context) {
 func GetProductsByCategoryID(c *gin.Context) {
 	categoryID, err := strconv.Atoi(c.Param("categoryID"))
 	if err != nil {
-		c.IndentedJSON(400, "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	products, err := service.GetProductsByCategoryID(int16(categoryID))
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error getting products.")
+		c.IndentedJSON(apiError.Status(), apiError)
+		return
+	}
+
+	if products == nil {
+		apiError := apierror.NewNotFoundApiError("products", "Products not found.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -43,13 +60,15 @@ func GetProductsByCategoryID(c *gin.Context) {
 func AddProduct(c *gin.Context) {
 	var newProduct domain.Product
 	if err := c.ShouldBindJSON(&newProduct); err != nil {
-		c.IndentedJSON(400, "Input body is invalid.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	newProduct, err := service.AddProduct(newProduct)
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error creating product.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -59,18 +78,21 @@ func AddProduct(c *gin.Context) {
 func UpdateProduct(c *gin.Context) {
 	var currentProduct domain.Product
 	if err := c.ShouldBindJSON(&currentProduct); err != nil {
-		c.IndentedJSON(400, "Input body is invalid.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	if currentProduct.ProductID == 0 {
-		c.IndentedJSON(400, "Missing product_id. Field is required.")
+		apiError := apierror.NewBadRequestApiError("products", "Missing product_id. Field is required.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	currentProduct, err := service.UpdateProduct(currentProduct)
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error updating product.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
@@ -80,13 +102,15 @@ func UpdateProduct(c *gin.Context) {
 func DeleteProduct(c *gin.Context) {
 	productID, err := strconv.Atoi(c.Param("productID"))
 	if err != nil {
-		c.IndentedJSON(400, "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
 	err = service.DeleteProduct(int64(productID))
 	if err != nil {
-		c.IndentedJSON(500, err.Error())
+		apiError := apierror.NewInternalServerApiError("products", "Error deleting product.")
+		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
 
