@@ -5,6 +5,7 @@ import (
 	"products-api/api/service"
 	"strconv"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/miwiistore/utils/apierror"
 )
@@ -12,6 +13,7 @@ import (
 func GetCategories(c *gin.Context) {
 	categories, err := service.GetCategories()
 	if err != nil {
+		sentry.CaptureException(err)
 		apiError := apierror.NewInternalServerApiError("products", "Error getting categories.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return
@@ -36,6 +38,7 @@ func GetCategoryByID(c *gin.Context) {
 
 	category, err := service.GetCategoryByID(int16(categoryID))
 	if err != nil {
+		sentry.CaptureException(err)
 		apiError := apierror.NewInternalServerApiError("products", "Error getting category.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return
@@ -60,6 +63,7 @@ func AddCategory(c *gin.Context) {
 
 	newCategory, err := service.AddCategory(newCategory)
 	if err != nil {
+		sentry.CaptureException(err)
 		apiError := apierror.NewInternalServerApiError("products", "Error creating category.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return
@@ -84,6 +88,7 @@ func UpdateCategory(c *gin.Context) {
 
 	currentCategory, err := service.UpdateCategory(currentCategory)
 	if err != nil {
+		sentry.CaptureException(err)
 		apiError := apierror.NewInternalServerApiError("products", "Error updating category.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return
@@ -102,6 +107,7 @@ func DeleteCategory(c *gin.Context) {
 
 	err = service.DeleteCategory(int16(categoryID))
 	if err != nil {
+		sentry.CaptureException(err)
 		apiError := apierror.NewInternalServerApiError("products", "Error deleting category.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return

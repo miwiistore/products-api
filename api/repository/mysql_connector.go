@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/cloudsqlconn"
 	"cloud.google.com/go/cloudsqlconn/mysql/mysql"
+	"github.com/getsentry/sentry-go"
 )
 
 var (
@@ -26,7 +27,7 @@ func init() {
 		func() {
 			mySqlClientDB, err := connectToDB()
 			if err != nil {
-				panic(err.Error())
+				sentry.CaptureException(err)
 			}
 			clientDB = mySqlClientDB
 		},
@@ -36,7 +37,8 @@ func init() {
 func connectToDB() (*sql.DB, error) {
 	_, err := mysql.RegisterDriver("cloudsql-mysql", cloudsqlconn.WithCredentialsFile("./key.json"))
 	if err != nil {
-		panic(err.Error())
+		sentry.CaptureException(err)
+		return nil, err
 	}
 
 	connSting := fmt.Sprintf("%s:%s@cloudsql-mysql(%s)/%s", dbUser, dbPwd, instanceConnectionName, dbName)
@@ -45,7 +47,12 @@ func connectToDB() (*sql.DB, error) {
 		connSting,
 	)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
+	}
+
+	if err = mySqlClientDB.Ping(); err != nil {
+		sentry.CaptureException(err)
 	}
 
 	return mySqlClientDB, nil
