@@ -1,17 +1,25 @@
 package main
 
 import (
+	"log"
+	"os"
 	"products-api/api/controller"
+	"time"
 
+	"github.com/getsentry/sentry-go"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := gin.Default()
-	productsRouting(router)
-	categoriesRouting(router)
+	sentryInit()
 
-	router.Run()
+	app := gin.Default()
+	app.Use(sentrygin.New(sentrygin.Options{}))
+	productsRouting(app)
+	categoriesRouting(app)
+
+	app.Run()
 }
 
 func productsRouting(router *gin.Engine) {
@@ -28,4 +36,16 @@ func categoriesRouting(router *gin.Engine) {
 	router.POST("/categories", controller.AddCategory)
 	router.PUT("/categories", controller.UpdateCategory)
 	router.DELETE("/categories/:categoryID", controller.DeleteCategory)
+}
+
+func sentryInit() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:              os.Getenv("SENTRY_DSN"),
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+
+	defer sentry.Flush(2 * time.Second)
 }
