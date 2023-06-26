@@ -51,9 +51,5 @@ func connectToDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	if err = mySqlClientDB.Ping(); err != nil {
-		sentry.CaptureException(err)
-	}
-
 	return mySqlClientDB, nil
 }

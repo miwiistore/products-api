@@ -63,7 +63,7 @@ func GetProductsByCategoryID(c *gin.Context) {
 func AddProduct(c *gin.Context) {
 	var newProduct domain.Product
 	if err := c.ShouldBindJSON(&newProduct); err != nil {
-		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Input body is invalid.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}
@@ -82,7 +82,7 @@ func AddProduct(c *gin.Context) {
 func UpdateProduct(c *gin.Context) {
 	var currentProduct domain.Product
 	if err := c.ShouldBindJSON(&currentProduct); err != nil {
-		apiError := apierror.NewBadRequestApiError("products", "Invalid parameter.")
+		apiError := apierror.NewBadRequestApiError("products", "Input body is invalid.")
 		c.IndentedJSON(apiError.Status(), apiError)
 		return
 	}

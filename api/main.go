@@ -18,6 +18,7 @@ func main() {
 	app.Use(sentrygin.New(sentrygin.Options{}))
 	productsRouting(app)
 	categoriesRouting(app)
+	picturesRouting(app)
 
 	app.Run()
 }
@@ -36,6 +37,12 @@ func categoriesRouting(router *gin.Engine) {
 	router.POST("/categories", controller.AddCategory)
 	router.PUT("/categories", controller.UpdateCategory)
 	router.DELETE("/categories/:categoryID", controller.DeleteCategory)
+}
+
+func picturesRouting(router *gin.Engine) {
+	router.GET("/pictures/:pictureID", controller.GetPictureByID)
+	router.POST("/pictures", controller.UploadPicture)
+	router.DELETE("/pictures/:pictureID", controller.DeletePicture)
 }
 
 func sentryInit() {
